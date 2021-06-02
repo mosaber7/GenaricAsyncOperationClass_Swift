@@ -1,5 +1,5 @@
 import Foundation
-
+import UIKit
 
 class GenaricAsyncOperation: Operation{
     var state = AsyncState.ready{
@@ -46,4 +46,32 @@ extension GenaricAsyncOperation{
         }
         
     }
+}
+
+// Mark: - operation Example
+
+class ImageDownloadOperation: GenaricAsyncOperation{
+    private let url: URL
+    var image: UIImage?
+    init(url: URL) {
+        self.url = url
+        super.init()
+    }
+    override func main() {
+        URLSession.shared.dataTask(with: url){ [weak self] data, _, error in
+            
+            guard let self = self else {
+                return
+            }
+            //called after the return to modify the state of the operation from .executing -> .finished
+            defer {
+                self.state = .finished
+            }
+            guard let error = error,let data = data else {
+                return
+            }
+            self.image = UIImage(data: data)
+        }.resume()
+    }
+    
 }
